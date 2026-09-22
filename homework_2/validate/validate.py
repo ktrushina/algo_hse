@@ -1,31 +1,31 @@
 def validate(pushed, popped):
     stack = []
-    counter = 0
+    matched = 0
 
     for value in pushed:
         stack.append(value)
 
-        while stack and counter < len(popped) and stack[-1] == popped[counter]:
+        while stack and matched < len(popped) and stack[-1] == popped[matched]:
             stack.pop()
-            counter += 1
+            matched += 1
 
-    return counter == len(popped)
+    return matched == len(popped)
 
 '''
-или с помощью реализованного ранее stack
+или с помощью реализованного ранее stack (homework_2/stack_vs_queue/stack.py)
 
 from stack import Stack 
 
 def validate(pushed, popped):
     stack = Stack()         
-    counter = 0
+    matched = 0
 
     for value in pushed:
         stack.push(value)    # push вместо append
 
-        while not stack.is_empty() and counter < len(popped) and stack.peek() == popped[counter]:
+        while not stack.is_empty() and matched < len(popped) and stack.peek() == popped[matched]:
             stack.pop()
-            counter+= 1
+            matched+= 1
 
     return counter == len(popped)
 '''    
