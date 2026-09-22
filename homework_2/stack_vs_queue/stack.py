@@ -14,7 +14,7 @@ class Stack:
         self.top = new_node
         self.size += 1
 
-    def pop(self): #достать элемент
+    def pop(self): #достаем элемент
         if self.top is None:
             raise IndexError("stack is empty")
 
@@ -29,7 +29,7 @@ class Stack:
 
         return self.top.data
 
-    def is_empty(self):
+    def is_empty(self): #пуст ли стек
         return self.top is None
 
     def __len__(self):
