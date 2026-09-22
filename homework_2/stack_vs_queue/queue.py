@@ -40,8 +40,8 @@ class Queue:
 
         return self.first.data
 
-    def is_empty(self):
+    def is_empty(self): #проверяем, пуста ли очередь
         return self.first is None
 
-    def __len__(self):
+    def __len__(self): #количество элементов
         return self.size
