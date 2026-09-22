@@ -116,7 +116,7 @@ first                    last
 ---
 
 ## Визуализация Stack
-
+```
 LIFO
 
     push, pop ↓
@@ -130,9 +130,9 @@ top → │  30  │
       └───┬──┘
           ↓
         None
-
+```
 ## Визуализация Queue
-
+```
 FIFO 
 
   first          last
@@ -144,4 +144,4 @@ FIFO
      ↑                    ↑
   dequeue              enqueue(потом указатель last перейдет сюда)
 
-        
+  ```      
