@@ -27,5 +27,5 @@ def validate(pushed, popped):
             stack.pop()
             matched+= 1
 
-    return counter == len(popped)
+    return matched == len(popped)
 '''    
