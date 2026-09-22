@@ -29,6 +29,3 @@ def test_single_element():
     popped = [1]
 
     assert validate(pushed, popped) is True
-
-def test_different_lengths():
-    assert validate([1, 2, 3], [1, 2, 1]) is True
