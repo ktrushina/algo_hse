@@ -1,3 +1,6 @@
+def parse_input(s):
+    return list(map(int, s.split()))
+
 def max_even_sum(num):
     total = sum(num)
 
