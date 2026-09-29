@@ -1,3 +1,5 @@
+from anagrams import group_anagrams
+
 def test_group_anagrams():
     result = group_anagrams(
         ["eat", "tea", "tan", "ate", "nat", "bat"]
