@@ -37,5 +37,17 @@ k - макс длина слова (сортировка каждого слов
  ↓            ↓
 создаём      добавляем
 группу       слово
+ ``` 
 
-```
+## Пошаговое выполнение
+strs = ["eat", "tea", "tan", "ate", "nat", "bat"]
+
+| Итерация | `word` | `key = ''.join(sorted(word))` | Состояние `groups` |
+|---:|---|---|---|
+| 1 | `"eat"` | `"aet"` | `{"aet": ["eat"]}` |
+| 2 | `"tea"` | `"aet"` | `{"aet": ["eat", "tea"]}` |
+| 3 | `"tan"` | `"ant"` | `{"aet": ["eat", "tea"], "ant": ["tan"]}` |
+| 4 | `"ate"` | `"aet"` | `{"aet": ["eat", "tea", "ate"], "ant": ["tan"]}` |
+| 5 | `"nat"` | `"ant"` | `{"aet": ["eat", "tea", "ate"], "ant": ["tan", "nat"]}` |
+| 6 | `"bat"` | `"abt"` | `{"aet": ["eat", "tea", "ate"], "ant": ["tan", "nat"], "abt": ["bat"]}` |
+
