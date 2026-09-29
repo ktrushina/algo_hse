@@ -23,3 +23,7 @@ def test_one_odd_number():
 
 def test_multiple_odd_numbers():
     assert max_even_sum([3, 5, 7, 2]) == 14
+
+def test_input():
+    numbers = parse_input("5 7 13 2 14")
+    assert max_even_sum(numbers) == 40
