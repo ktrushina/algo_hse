@@ -133,8 +133,6 @@ class HashTable:
             # % capacity позволяет вернуться в начало таблицы
             index = (index + 1) % self.capacity
 
-        # В нормальной работе это практически недостижимо,
-        # поскольку таблица автоматически расширяется
         raise RuntimeError("Hash table is full")
 
     def __getitem__(self, key):
