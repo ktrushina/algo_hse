@@ -9,6 +9,7 @@ class BST:
     def __init__(self):
         self.root = None #корень дерева; изначально дерево пустое
 
+    #вообще предполагаю, что дубликаты запрещены
     def insert(self, value): #если дерево пустое, новый узел становится корнем
         if self.root is None:
             self.root = Node(value)
