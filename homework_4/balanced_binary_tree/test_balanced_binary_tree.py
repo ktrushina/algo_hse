@@ -173,3 +173,24 @@ def test_balanced_tree_that_is_not_bst():
     root.left.left = Node(200)
 
     assert is_balanced(root) is True
+
+def test_balanced_tree_with_height_difference_one_at_each_node():
+    root = Node(10)
+    root.left = Node(5)
+    root.left.left = Node(3)
+    root.right = Node(15)
+    root.right.right = Node(20)
+
+    assert is_balanced(root) is True
+
+def test_unbalanced_deep_subtree_with_balanced_root():
+    root = Node(10)
+    root.left = Node(5)
+    root.left.left = Node(3)
+    root.left.left.left = Node(1)
+
+    root.right = Node(20)
+    root.right.left = Node(15)
+    root.right.right = Node(25)
+
+    assert is_balanced(root) is False
