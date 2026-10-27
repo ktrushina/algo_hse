@@ -3,7 +3,7 @@ class Node:
 
     __slots__ = ("value", "left", "right")
 
-    def __init__(self, value: int) -> None:
+    def __init__(self, value: object) -> None:
         self.value = value
         self.left = None
         self.right = None
@@ -14,7 +14,7 @@ class BST:
     def __init__(self) -> None:
         self.root = None
 
-    def insert(self, value: int) -> None:
+    def insert(self, value: object) -> None:
         """Вставляет значение"""
         if value is None or value != value:  # value != value истинно только для NaN
             raise ValueError("None и NaN нельзя хранить в BST")
@@ -38,7 +38,7 @@ class BST:
             else:
                 return  # значение уже есть
 
-    def _walk(self, order: str, mirror: bool) -> list[int]:
+    def _walk(self, order: str, mirror: bool) -> list[object]:
         """Итеративный обход со стеком пар (узел, раскрыт_ли)
 
         Пара (узел, False) означает узел ещё не раскрыт»: при извлечении
@@ -46,7 +46,7 @@ class BST:
         Пара (узел, True) означает посетить узел: значение пишется в result.
         mirror=True меняет местами L и R
         """
-        result: list[int] = []
+        result: list[object] = []
         stack = [(self.root, False)] if self.root is not None else []
 
         while stack:
@@ -71,26 +71,26 @@ class BST:
 
         return result
 
-    def preorder(self) -> list[int]:
+    def preorder(self) -> list[object]:
         """N → L → R."""
         return self._walk("pre", mirror=False)
 
-    def inorder(self) -> list[int]:
+    def inorder(self) -> list[object]:
         """L → N → R (по возрастанию)."""
         return self._walk("in", mirror=False)
 
-    def postorder(self) -> list[int]:
+    def postorder(self) -> list[object]:
         """L → R → N."""
         return self._walk("post", mirror=False)
 
-    def reverse_preorder(self) -> list[int]:
+    def reverse_preorder(self) -> list[object]:
         """N → R → L."""
         return self._walk("pre", mirror=True)
 
-    def reverse_inorder(self) -> list[int]:
+    def reverse_inorder(self) -> list[object]:
         """R → N → L (по убыванию)."""
         return self._walk("in", mirror=True)
 
-    def reverse_postorder(self) -> list[int]:
+    def reverse_postorder(self) -> list[object]:
         """R → L → N."""
         return self._walk("post", mirror=True)
