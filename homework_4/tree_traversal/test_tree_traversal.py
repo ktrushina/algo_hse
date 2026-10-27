@@ -26,7 +26,7 @@ README_EXPECTED = {
 
 
 def build_bst(values):
-    """Создаёт BST из списка значений."""
+    """Создаёт BST из списка значений"""
     tree = BST()
     for value in values:
         tree.insert(value)
@@ -34,9 +34,9 @@ def build_bst(values):
 
 
 def assert_valid_bst(tree):
-    """Проверяет инвариант BST: для каждого узла min < value < max по всем предкам.
+    """Проверяет инвариант BST: для каждого узла min < value < max по всем предкам
 
-    Обход итеративный, чтобы сам хелпер не падал на глубоких деревьях.
+    Обход итеративный, чтобы сам хелпер не падал на глубоких деревьях
     """
     stack = [(tree.root, None, None)] if tree.root is not None else []
     while stack:
