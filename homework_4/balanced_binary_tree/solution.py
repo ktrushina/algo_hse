@@ -1,3 +1,13 @@
+class Node:
+    """Узел дерева: значение и ссылки на левого и правого потомков"""
+
+    __slots__ = ("value", "left", "right")
+
+    def __init__(self, value: object) -> None:
+        self.value = value
+        self.left = None
+        self.right = None
+
 def is_balanced(root):
     """Возвращает True, если бинарное дерево сбалансировано по высоте."""
     def height(node):
