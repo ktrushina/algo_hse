@@ -69,13 +69,16 @@ def test_unbalanced_at_root():
 
 
 def test_unbalanced_deep_in_left_subtree():
-    """Корень может выглядеть сбалансированным, но ниже есть нарушение"""
+    """Корень сбалансирован по высотам, но левое поддерево — нет."""
     root = Node(10)
     root.left = Node(5)
-    root.right = Node(15)
-
     root.left.left = Node(3)
     root.left.left.left = Node(1)
+
+    root.right = Node(20)
+    root.right.left = Node(15)
+    root.right.left.left = Node(12)
+    root.right.right = Node(25)
 
     assert is_balanced(root) is False
 
@@ -161,3 +164,12 @@ def test_unbalanced_by_more_than_two_levels():
     root.right = Node(15)
 
     assert is_balanced(root) is False
+
+def test_balanced_tree_that_is_not_bst():
+    """Баланс зависит от структуры, а не от порядка значений."""
+    root = Node(10)
+    root.left = Node(100)
+    root.right = Node(-100)
+    root.left.left = Node(200)
+
+    assert is_balanced(root) is True
