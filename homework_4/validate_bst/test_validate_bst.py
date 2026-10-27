@@ -281,3 +281,20 @@ def test_deep_chain_ancestor_violation_at_bottom():
     bottom.right = Node(4000)
 
     assert is_valid_bst(root) is False
+
+
+def test_invalid_deep_right_subtree_exceeds_ancestor():
+    root = Node(10)
+    root.right = Node(15)
+    root.right.right = Node(20)
+    root.right.right.left = Node(9)
+
+    assert is_valid_bst(root) is False
+
+def test_invalid_deep_left_subtree_below_ancestor():
+    root = Node(10)
+    root.left = Node(5)
+    root.left.left = Node(2)
+    root.left.left.right = Node(7)
+
+    assert is_valid_bst(root) is False
