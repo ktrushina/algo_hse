@@ -1,7 +1,7 @@
 
 import pytest
 
-from tree_traversal import BST
+from is_valid_bst import BST
 
 
 def build_bst(values):
