@@ -7,18 +7,21 @@ class Node:
 
 
 def is_valid_bst(root):
-    def validate(node, low, high):
+    stack = [(root, float('-inf'), float('inf'))]  #(узел, нижняя граница, верхняя граница)
+
+    while stack:
+        node, low, high = stack.pop()
+
         if node is None:
-            return True
+            continue
 
         #значение должно строго находиться между границами
         if not low < node.value < high:
             return False
 
-        #проверяем левое и правое поддеревья
-        return (
-            validate(node.left, low, node.value)
-            and validate(node.right, node.value, high)
-        )
+        #добавляем в стек правое и левое поддеревья
+        #левое кладём последним, чтобы оно проверялось первым
+        stack.append((node.right, node.value, high))
+        stack.append((node.left, low, node.value))
 
-    return validate(root, float('-inf'), float('inf'))
+    return True
