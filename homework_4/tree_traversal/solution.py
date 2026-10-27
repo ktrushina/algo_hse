@@ -1,129 +1,96 @@
-class Node: #узел
-    def __init__(self, value):
-        self.value = value #значение которое храним в узле 
-        self.left = None #ссылка на левого потомка
-        self.right = None #ссылка на  правого потомка
+class Node:
+    """Узел дерева: значение и ссылки на левого и правого потомков"""
+
+    __slots__ = ("value", "left", "right")
+
+    def __init__(self, value: int) -> None:
+        self.value = value
+        self.left = None
+        self.right = None
 
 
 class BST:
-    def __init__(self):
-        self.root = None #корень дерева; изначально дерево пустое
 
-    #вообще предполагаю, что дубликаты запрещены
-    def insert(self, value): #если дерево пустое, новый узел становится корнем
+    def __init__(self) -> None:
+        self.root = None
+
+    def insert(self, value: int) -> None:
+        """Вставляет значение"""
+        if value is None or value != value:  # value != value истинно только для NaN
+            raise ValueError("None и NaN нельзя хранить в BST")
+
         if self.root is None:
             self.root = Node(value)
             return
 
-        current = self.root #начинаем поиск места для нового элемента с корня
-
+        current = self.root
         while True:
-            #если новое значение меньше текущего, оно должно находиться в левом поддереве
             if value < current.value:
                 if current.left is None:
-                    #если место свободно, вставляем новый узел
                     current.left = Node(value)
                     return
-                #иначе продолжаем поиск в правом поддереве  
                 current = current.left
-
-            #если новое значение больше текущего, оно должно находится в правом поддереве
             elif value > current.value:
                 if current.right is None:
                     current.right = Node(value)
                     return
                 current = current.right
+            else:
+                return  # значение уже есть
 
-            else: 
-                #если значение уже есть в дереве, не добавляем дубликат
-                return
+    def _walk(self, order: str, mirror: bool) -> list[int]:
+        """Итеративный обход со стеком пар (узел, раскрыт_ли)
 
-    #прямой обход: корень -> левое поддерево -> правое поддерево
-    def preorder(self):
-        result = [] #порядок посещения узлов
+        Пара (узел, False) означает узел ещё не раскрыт»: при извлечении
+        он заменяется тремя действиями (N, L, R) в нужном порядке.
+        Пара (узел, True) означает посетить узел: значение пишется в result.
+        mirror=True меняет местами L и R
+        """
+        result: list[int] = []
+        stack = [(self.root, False)] if self.root is not None else []
 
-        def traverse(node):
-            if node is None: #нет узла, значит нечего и обходить
-                return
+        while stack:
+            node, expanded = stack.pop()
+            if expanded:
+                result.append(node.value)
+                continue
 
-            result.append(node.value) #сначала посещаем текущий узел
-            traverse(node.left) #затем обходим левое поддерево
-            traverse(node.right) #после этого обходим правое поддерево
+            first, second = (node.right, node.left) if mirror else (node.left, node.right)
+            visit = (node, True)
+            if order == "pre":
+                actions = [visit, (first, False), (second, False)]
+            elif order == "in":
+                actions = [(first, False), visit, (second, False)]
+            else:  # "post"
+                actions = [(first, False), (second, False), visit]
 
-        traverse(self.root) #начинаем обход с корня
+            # Стек LIFO: кладём в обратном порядке, чтобы первым снялось actions[0]
+            for item in reversed(actions):
+                if item[0] is not None:
+                    stack.append(item)
+
         return result
 
-    #симметричный обход: левое поддерево -> корень -> правое поддерево
-    def inorder(self):
-        result = []
+    def preorder(self) -> list[int]:
+        """N → L → R."""
+        return self._walk("pre", mirror=False)
 
-        def traverse(node):
-            if node is None:
-                return
+    def inorder(self) -> list[int]:
+        """L → N → R (по возрастанию)."""
+        return self._walk("in", mirror=False)
 
-            traverse(node.left) #сначала левое поддерево
-            result.append(node.value) #затем текущий узел
-            traverse(node.right) #в конце правое поддерево
+    def postorder(self) -> list[int]:
+        """L → R → N."""
+        return self._walk("post", mirror=False)
 
-        traverse(self.root)
-        return result
+    def reverse_preorder(self) -> list[int]:
+        """N → R → L."""
+        return self._walk("pre", mirror=True)
 
-    #обратный обход: левое поддерево -> правое поддерево -> корень
-    def postorder(self):
-        result = []
+    def reverse_inorder(self) -> list[int]:
+        """R → N → L (по убыванию)."""
+        return self._walk("in", mirror=True)
 
-        def traverse(node):
-            if node is None:
-                return
-
-            traverse(node.left) #сначала левое поддерево
-            traverse(node.right) #затем правое поддерево
-            result.append(node.value) #текущий узел посещаем последним
-
-        traverse(self.root)
-        return result
-
-    #обратный preorder: корень -> правое поддерево -> левое поддерево
-    def reverse_preorder(self):
-        result = []
-
-        def traverse(node):
-            if node is None:
-                return
-
-            result.append(node.value) #сначала текущий узел
-            traverse(node.right) #затем правое поддерево
-            traverse(node.left)  #после левое поддерево
-
-        traverse(self.root)
-        return result
-
-    #обратный inorder: правое поддерево -> корень -> левое поддерево
-    def reverse_inorder(self):
-        result = []
-
-        def traverse(node):
-            if node is None:
-                return
-
-            traverse(node.right)
-            result.append(node.value)
-            traverse(node.left)
-
-        traverse(self.root)
-        return result
-
-    #обратный postorder: правое поддерево -> левое поддерево -> корень
-    def reverse_postorder(self):
-        result = []
-
-        def traverse(node):
-            if node is None:
-                return
-
-            traverse(node.right)
-            traverse(node.left)
-            result.append(node.value)
-
-        traverse(self.root)
-        return result
+    def reverse_postorder(self) -> list[int]:
+        """R → L → N."""
+        return self._walk("post", mirror=True)
