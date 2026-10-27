@@ -1,3 +1,6 @@
+import pytest
+from solution import Node, is_valid_bst
+
 def test_empty_tree():
     assert is_valid_bst(None) is True
 
