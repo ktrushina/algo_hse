@@ -1,297 +1,277 @@
+# AVL — самобалансирующееся бинарное дерево поиска
 
-import random
+## Условие задачи
 
-import pytest
+Реализовать класс `AVL`, который поддерживает три операции:
 
+- `insert(value)` — вставка значения;
+- `delete(value)` — удаление значения;
+- `search(value)` — поиск значения.
+
+После вставки и удаления дерево должно сохранять свойство AVL: для каждого узла высоты левого и правого поддеревьев отличаются не более чем на 1.
+
+## Входные и выходные данные
+
+Класс `AVL` создаётся без аргументов: `tree = AVL()`.
+
+- `insert(value)` добавляет значение в дерево и ничего не возвращает. Повторные значения игнорируются.
+- `delete(value)` удаляет значение, если оно присутствует, и ничего не возвращает. Если значения нет, дерево не изменяется.
+- `search(value)` возвращает `True`, если значение найдено, и `False` в противном случае.
+
+Значения должны поддерживать операции сравнения `<`, `>` и `==` друг с другом. В примерах используются целые числа.
+
+**Пример использования:**
+
+```python
 from solution import AVL
 
+tree = AVL()
+tree.insert(10)
+tree.insert(20)
+tree.insert(30)
 
-def inorder(node):
-    """Возвращает значения дерева в порядке возрастания."""
-    if node is None:
-        return []
+assert tree.search(20) is True
+assert tree.search(99) is False
 
-    return (
-        inorder(node.left)
-        + [node.value]
-        + inorder(node.right)
-    )
+tree.delete(20)
+assert tree.search(20) is False
+```
 
+## Идея алгоритма
 
-def check_avl(node):
-    """Проверяет высоты и баланс всех узлов дерева."""
-    if node is None:
-        return 0
+AVL — бинарное дерево поиска. Для каждого узла:
 
-    left_height = check_avl(node.left)
-    right_height = check_avl(node.right)
+- все значения в левом поддереве меньше значения узла;
+- все значения в правом поддереве больше значения узла.
 
-    assert abs(left_height - right_height) <= 1
-    assert node.height == 1 + max(left_height, right_height)
+Чтобы дерево не превращалось в длинную цепочку, после изменений проверяем **фактор баланса**:
 
-    return node.height
+`balance = height(left) - height(right)`.
 
+Высота пустого поддерева равна `0`, а высота листа — `1`. Для каждого узла допустимы факторы баланса `-1`, `0`, `1`. Если модуль фактора становится больше `1`, восстанавливаем баланс поворотами.
 
-def assert_valid_tree(tree, expected):
-    """Проверяет содержимое дерева и свойства AVL."""
-    values = inorder(tree.root)
+В реализации:
 
-    assert values == sorted(expected)
-    assert len(values) == len(set(values))
-    check_avl(tree.root)
+- `Node` хранит `value`, `left`, `right` и `height`;
+- `_height` получает высоту поддерева;
+- `_update_height` пересчитывает высоту узла;
+- `_balance_factor` вычисляет разницу высот;
+- `_rotate_left` и `_rotate_right` выполняют повороты;
+- `_rebalance` выбирает нужный поворот и возвращает новый корень поддерева.
 
+### Вставка
 
-def test_empty_tree():
-    tree = AVL()
+1. Ищем место для значения по правилу бинарного дерева поиска.
+2. Создаём новый лист, если дошли до пустого места.
+3. Если значение уже существует, не добавляем дубликат.
+4. При возврате из рекурсии обновляем высоты и при необходимости балансируем поддеревья.
+5. Сохраняем возвращённый корень в `self.root`.
 
-    assert tree.root is None
-    assert tree.search(10) is False
+### Поиск
 
-    tree.delete(10)
-    assert_valid_tree(tree, [])
+Начинаем с корня. Если значение совпадает — возвращаем `True`. Если искомое значение меньше текущего, идём налево, иначе — направо. Если дошли до `None`, возвращаем `False`. Поиск реализован итеративно.
 
+### Удаление
 
-def test_single_element():
-    tree = AVL()
+Сначала находим узел по правилу бинарного дерева поиска. Возможны три случая:
 
-    tree.insert(10)
+1. **Нет детей:** узел удаляется, вместо него возвращается `None`.
+2. **Один ребёнок:** вместо удаляемого узла возвращается его ребёнок.
+3. **Два ребёнка:** находим минимальное значение в правом поддереве (следующий элемент по возрастанию), заменяем им значение узла и удаляем этот элемент из правого поддерева.
 
-    assert tree.search(10) is True
-    assert tree.search(20) is False
-    assert_valid_tree(tree, [10])
+При возврате из рекурсии обновляем высоты и балансируем затронутые поддеревья. После удаления корня также обновляем `self.root`.
 
-    tree.delete(10)
+## Визуализация поворотов
 
-    assert tree.root is None
-    assert tree.search(10) is False
+Повороты изменяют связи между узлами, но сохраняют порядок бинарного дерева поиска.
 
+### LL — правый поворот
 
-@pytest.mark.parametrize(
-    "values, expected_root",
-    [
-        ([30, 20, 10], 20),  # LL
-        ([10, 20, 30], 20),  # RR
-        ([30, 10, 20], 20),  # LR
-        ([10, 30, 20], 20),  # RL
-    ],
-)
-def test_insert_rotations(values, expected_root):
-    tree = AVL()
+Вставляем `30`, `20`, `10`:
 
-    for value in values:
-        tree.insert(value)
+```text
+До:                 После:
+       30                  20
+      /                   /  \
+     20                  10   30
+    /
+   10
+```
 
-    assert tree.root.value == expected_root
-    assert_valid_tree(tree, values)
+У узла `30` фактор баланса равен `+2`. Выполняем `_rotate_right(30)`.
 
+### RR — левый поворот
 
-def test_insert_many_sorted_values():
-    tree = AVL()
+Вставляем `10`, `20`, `30`:
 
-    for value in range(100):
-        tree.insert(value)
+```text
+До:                 После:
+   10                      20
+     \                    /  \
+      20                 10   30
+        \
+         30
+```
 
-    assert_valid_tree(tree, range(100))
-    assert tree.search(0) is True
-    assert tree.search(99) is True
-    assert tree.search(100) is False
+У узла `10` фактор баланса равен `-2`. Выполняем `_rotate_left(10)`.
 
+### LR — сначала левый, затем правый поворот
 
-def test_insert_duplicates():
-    tree = AVL()
+Вставляем `30`, `10`, `20`:
 
-    for value in [10, 20, 10, 20, 10]:
-        tree.insert(value)
+```text
+До:                 После первого:       После второго:
+      30                    30                  20
+     /                     /                   /  \
+    10                    20                  10   30
+      \                  /
+       20               10
+```
 
-    assert_valid_tree(tree, [10, 20])
+Сначала выполняем `_rotate_left(10)`, затем `_rotate_right(30)`.
 
+### RL — сначала правый, затем левый поворот
 
-def test_negative_and_zero_values():
-    tree = AVL()
+Вставляем `10`, `30`, `20`:
 
-    for value in [-10, 0, 5, -20]:
-        tree.insert(value)
+```text
+До:                 После первого:       После второго:
+   10                     10                   20
+     \                      \                 /  \
+      30                     20              10   30
+     /                         \
+    20                          30
+```
 
-    assert_valid_tree(tree, [-20, -10, 0, 5])
+Сначала выполняем `_rotate_right(30)`, затем `_rotate_left(10)`.
 
+## Пошаговый пример удаления
 
-def test_delete_leaf():
-    tree = AVL()
+Рассмотрим последовательность операций из нашей реализации.
 
-    for value in [20, 10, 30]:
-        tree.insert(value)
+### Шаг 1. Вставляем значения
 
-    tree.delete(10)
+Выполняем:
 
-    assert tree.search(10) is False
-    assert_valid_tree(tree, [20, 30])
+```python
+tree = AVL()
 
+for value in [4, 2, 5, 1, 3]:
+    tree.insert(value)
+```
 
-def test_delete_node_with_one_child():
-    tree = AVL()
+Получаем дерево:
 
-    for value in [20, 10, 30, 25]:
-        tree.insert(value)
+```text
+           4 (h=3)
+          /       \
+     2 (h=2)     5 (h=1)
+     /    \
+1 (h=1)  3 (h=1)
+```
 
-    tree.delete(30)
+Все узлы сбалансированы.
 
-    assert tree.search(30) is False
-    assert_valid_tree(tree, [10, 20, 25])
+### Шаг 2. Удаляем значение 5
 
+Вызываем:
 
-def test_delete_node_with_two_children():
-    tree = AVL()
+```python
+tree.delete(5)
+```
 
-    for value in [20, 10, 30, 25, 40]:
-        tree.insert(value)
+Внутренняя функция `_delete` начинает поиск с корня `4` и переходит в правое поддерево.
 
-    tree.delete(30)
+Узел `5` является листом, поэтому `_delete` возвращает `None`, и выполняется присваивание:
 
-    assert tree.search(30) is False
-    assert_valid_tree(tree, [10, 20, 25, 40])
+```python
+node.right = _delete(node.right, 5)
+```
 
+Теперь `4.right = None`.
 
-def test_delete_root():
-    tree = AVL()
+Состояние дерева:
 
-    for value in [20, 10, 30]:
-        tree.insert(value)
+```text
+           4
+          /
+         2
+        / \
+       1   3
+```
 
-    tree.delete(20)
+### Шаг 3. Проверяем баланс
 
-    assert tree.search(20) is False
-    assert_valid_tree(tree, [10, 30])
+При возврате к узлу `4` вызывается `_rebalance(4)`.
 
+Высоты поддеревьев:
 
-def test_delete_missing_value():
-    tree = AVL()
+- `height(4.left) = 2`;
+- `height(4.right) = 0`.
 
-    for value in [10, 20, 30]:
-        tree.insert(value)
+Получаем:
 
-    tree.delete(999)
+`balance(4) = 2 - 0 = +2`.
 
-    assert_valid_tree(tree, [10, 20, 30])
+Узел `4` разбалансирован. У его левого ребёнка `2` фактор баланса равен `0`, поэтому выполняем один правый поворот.
 
+### Шаг 4. Выполняем правый поворот
 
-def test_delete_rebalances_tree():
-    tree = AVL()
+В `_rotate_right(4)` переменные принимают значения:
 
-    for value in [4, 2, 5, 1, 3]:
-        tree.insert(value)
+```python
+new_root = node.left       # узел 2
+middle = new_root.right    # узел 3
 
-    tree.delete(5)
+new_root.right = node      # 2.right = 4
+node.left = middle         # 4.left = 3
+```
 
-    assert tree.root.value == 2
-    assert_valid_tree(tree, [1, 2, 3, 4])
+После обновления высот метод возвращает `new_root`, то есть узел `2`.
 
+### Шаг 5. Получаем итоговое дерево
 
-def test_delete_all_elements():
-    tree = AVL()
-    values = [50, 20, 70, 10, 30, 60, 80]
-    remaining = set(values)
+```text
+          2 (h=3)
+         /       \
+    1 (h=1)     4 (h=2)
+                /
+           3 (h=1)
+```
 
-    for value in values:
-        tree.insert(value)
+Возвращённый узел `2` сохраняется в `self.root`.
 
-    for value in values:
-        tree.delete(value)
-        remaining.remove(value)
+Проверяем результат:
 
-        assert_valid_tree(tree, remaining)
-        assert tree.search(value) is False
+```python
+assert tree.root.value == 2
+assert tree.search(5) is False
+assert tree.search(3) is True
+```
 
-    assert tree.root is None
+Порядок значений сохранён: `1, 2, 3, 4`. У всех узлов фактор баланса находится в диапазоне от `-1` до `1`.
 
+## Оценка сложности
 
-def test_repeated_operations():
-    tree = AVL()
+Пусть `n` — количество узлов дерева. Благодаря балансировке высота AVL-дерева составляет `O(log n)`.
 
-    tree.insert(10)
-    tree.insert(20)
-    tree.delete(10)
-    tree.insert(10)
-    tree.delete(20)
-    tree.delete(20)
+| Операция | Время | Дополнительная память |
+|---|---|---|
+| `search(value)` | `O(log n)` | `O(1)` |
+| `insert(value)` | `O(log n)` | `O(log n)` |
+| `delete(value)` | `O(log n)` | `O(log n)` |
 
-    assert_valid_tree(tree, [10])
+**Почему:**
 
+- **Поиск:** проходим только по одному пути от корня к нужному узлу. Длина пути не превышает `O(log n)`. Поиск итеративный, поэтому дополнительная память `O(1)`.
+- **Вставка:** спускаемся по дереву, затем при возврате из рекурсии обновляем высоты и при необходимости выполняем повороты. На каждом уровне работа занимает `O(1)`, всего уровней `O(log n)`.
+- **Удаление:** находим узел, при необходимости ищем минимальный элемент в правом поддереве, затем восстанавливаем баланс. Все действия выполняются вдоль путей логарифмической длины, поэтому время `O(log n)`.
+- **Память вставки и удаления:** рекурсивный стек занимает `O(log n)`. Повороты требуют только нескольких дополнительных переменных.
 
-def test_delete_same_value_twice():
-    tree = AVL()
+**Хранение дерева:** `O(n)` памяти на `n` узлов.
 
-    for value in [10, 20, 30]:
-        tree.insert(value)
+## Итог
 
-    tree.delete(20)
-    tree.delete(20)
+Класс `AVL` поддерживает вставку, удаление и поиск, сохраняя упорядоченность бинарного дерева поиска. После изменения структуры дерева пересчитываем высоты и при необходимости выполняем одинарные или двойные повороты.
 
-    assert tree.search(20) is False
-    assert_valid_tree(tree, [10, 30])
-
-
-def test_delete_root_with_one_child():
-    tree = AVL()
-
-    tree.insert(10)
-    tree.insert(5)
-    tree.delete(10)
-
-    assert tree.root.value == 5
-    assert_valid_tree(tree, [5])
-
-
-def test_delete_successor_with_right_child():
-    tree = AVL()
-
-    for value in [40, 20, 60, 50, 70, 55]:
-        tree.insert(value)
-
-    tree.delete(40)
-
-    assert tree.search(40) is False
-    assert_valid_tree(tree, [20, 50, 55, 60, 70])
-
-
-def test_many_insertions_and_deletions():
-    tree = AVL()
-    values = list(range(200))
-    remaining = set(values)
-
-    for value in values:
-        tree.insert(value)
-
-    assert_valid_tree(tree, remaining)
-
-    for value in values[::2]:
-        tree.delete(value)
-        remaining.remove(value)
-        assert_valid_tree(tree, remaining)
-
-    for value in values[1::2]:
-        tree.delete(value)
-        remaining.remove(value)
-        assert_valid_tree(tree, remaining)
-
-    assert tree.root is None
-
-
-def test_random_operations():
-    rng = random.Random(42)
-    tree = AVL()
-    expected = set()
-
-    for _ in range(200):
-        value = rng.randrange(-50, 51)
-
-        if rng.choice([True, False]):
-            tree.insert(value)
-            expected.add(value)
-        else:
-            tree.delete(value)
-            expected.discard(value)
-
-        assert_valid_tree(tree, expected)
-
-        for x in range(-50, 51):
-            assert tree.search(x) == (x in expected)
+Благодаря этому дерево остаётся сбалансированным даже при последовательной вставке отсортированных значений, а все три основные операции выполняются за `O(log n)` в худшем случае.
