@@ -34,7 +34,10 @@ def check_avl(node):
 
 def assert_valid_tree(tree, expected):
     """Проверяет содержимое дерева и свойства AVL."""
-    assert inorder(tree.root) == sorted(expected)
+    values = inorder(tree.root)
+
+    assert values == sorted(expected)
+    assert len(values) == len(set(values))
     check_avl(tree.root)
 
 
@@ -186,16 +189,17 @@ def test_delete_rebalances_tree():
 def test_delete_all_elements():
     tree = AVL()
     values = [50, 20, 70, 10, 30, 60, 80]
+    remaining = set(values)
 
     for value in values:
         tree.insert(value)
 
     for value in values:
         tree.delete(value)
-        assert_valid_tree(
-            tree,
-            [x for x in values if tree.search(x)],
-        )
+        remaining.remove(value)
+
+        assert_valid_tree(tree, remaining)
+        assert tree.search(value) is False
 
     assert tree.root is None
 
@@ -211,6 +215,65 @@ def test_repeated_operations():
     tree.delete(20)
 
     assert_valid_tree(tree, [10])
+
+
+def test_delete_same_value_twice():
+    tree = AVL()
+
+    for value in [10, 20, 30]:
+        tree.insert(value)
+
+    tree.delete(20)
+    tree.delete(20)
+
+    assert tree.search(20) is False
+    assert_valid_tree(tree, [10, 30])
+
+
+def test_delete_root_with_one_child():
+    tree = AVL()
+
+    tree.insert(10)
+    tree.insert(5)
+    tree.delete(10)
+
+    assert tree.root.value == 5
+    assert_valid_tree(tree, [5])
+
+
+def test_delete_successor_with_right_child():
+    tree = AVL()
+
+    for value in [40, 20, 60, 50, 70, 55]:
+        tree.insert(value)
+
+    tree.delete(40)
+
+    assert tree.search(40) is False
+    assert_valid_tree(tree, [20, 50, 55, 60, 70])
+
+
+def test_many_insertions_and_deletions():
+    tree = AVL()
+    values = list(range(200))
+    remaining = set(values)
+
+    for value in values:
+        tree.insert(value)
+
+    assert_valid_tree(tree, remaining)
+
+    for value in values[::2]:
+        tree.delete(value)
+        remaining.remove(value)
+        assert_valid_tree(tree, remaining)
+
+    for value in values[1::2]:
+        tree.delete(value)
+        remaining.remove(value)
+        assert_valid_tree(tree, remaining)
+
+    assert tree.root is None
 
 
 def test_random_operations():
